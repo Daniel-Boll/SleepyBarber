@@ -1,0 +1,6 @@
+[
+{
+  "directory": "/home/danielboll/dev/Unioeste/2022/SO/trabalho/sleepy_barber",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++20", "-Iinclude", "-DNDEBUG", "-o", "build/.objs/sleepy_barber/linux/x86_64/release/src/main.cpp.o", "src/main.cpp"],
+  "file": "src/main.cpp"
+}]
