@@ -1,81 +1,105 @@
-#include <fmt/color.h>
 #include <fmt/core.h>
 
-#include <future>
+#include <cassert>
+#include <cstdint>
+#include <iostream>
+#include <mutex>
+#include <semaphore>
 #include <thread>
+#include <vector>
 
-constexpr const int32_t SEATS = 3;
+constexpr const int32_t CHAIRS = 5;
 
-// Controllers
-bool barber_sleeping = true;
-bool is_seat_available = true;
-int32_t customers_waiting = 0;
+std::counting_semaphore<1> barber{0};
+std::counting_semaphore<1> customers{0};
+std::counting_semaphore<1> seats{1};
 
-void cut_hair() {
-#ifdef DEBUG
-  std::this_thread::sleep_for(std::chrono::seconds(3));
-  fmt::print(fmt::emphasis::bold | fg(fmt::color::green), "Hair cut\n");
-#endif
-  customers_waiting--;
-  is_seat_available = true;
-  if (customers_waiting == 0) {
-    barber_sleeping = true;
-#ifdef DEBUG
-    fmt::print(fmt::emphasis::bold, "Barber is sleeping 😴\n");
-#endif
-  }
-}
+int32_t waiting = 0;
+bool is_barber_sleeping = true;
 
-void new_customer() {
-#ifdef DEBUG
-  fmt::print(fmt::emphasis::bold | fg(fmt::color::blue), "New customer\n");
+int32_t served = 0;
+int32_t left = 0;
+
+void cut_hair() { served++; }
+
+void barber_routine() {
+  goto returns;
+  while (true) {
+  returns:
+#ifndef DEBUG
+    while (is_barber_sleeping)
+      ;
 #endif
 
-  if (barber_sleeping && is_seat_available) {
-    barber_sleeping = false;
-    is_seat_available = false;
 #ifdef DEBUG
-    fmt::print("Barber is awake 🥱\n");
-#endif
-    return std::async(std::launch::async, cut_hair).wait();
-  }
-
-  if (customers_waiting < SEATS) {
-#ifdef DEBUG
-    fmt::print(fmt::emphasis::bold | fg(fmt::color::yellow),
-               "Barber is busy, but there IS a seat available\n");
-#endif
-    customers_waiting++;
-
-    // while (!is_seat_available)
-    //   ;
-    while (!is_seat_available) std::this_thread::yield();
-
-    is_seat_available = false;
-    return std::async(std::launch::async, cut_hair).wait();
-  }
-
-#ifdef DEBUG
-  fmt::print(fmt::emphasis::bold | fg(fmt::color::red),
-             "Barber is busy and there are NO seats available\n");
-#endif
-}
-
-int main(int argc, char *argv[]) {
-#ifdef DEBUG
-  constexpr const auto MAX_ITERATIONS = 10;
-#else
-  constexpr const auto MAX_ITERATIONS = 100'000;
+    customers.acquire();
+    seats.acquire();
 #endif
 
-  int32_t idx = 0;
-  while (idx < MAX_ITERATIONS) {
-#ifdef DEBUG
-    std::this_thread::sleep_for(std::chrono::milliseconds(600));
-#endif
-    if (std::rand() % 2 == 0) {
-      std::thread(new_customer).detach();
-      ++idx;
+#ifndef DEBUG
+    if (waiting == 0) {
+      is_barber_sleeping = true;
+      goto returns;
     }
+#endif
+
+    waiting--;
+
+#ifdef DEBUG
+    barber.release();
+    seats.release();
+#endif
+    cut_hair();
   }
+}
+
+void customer_routine() {
+#ifdef DEBUG
+  seats.acquire();
+#endif
+
+  if (waiting < CHAIRS) {
+#ifndef DEBUG
+    if (waiting == 0 && is_barber_sleeping) is_barber_sleeping = false;
+#endif
+
+    waiting++;
+
+#ifdef DEBUG
+    customers.release();
+    seats.release();
+    barber.acquire();
+#endif
+  } else {
+#ifdef DEBUG
+    seats.release();
+#endif
+    left++;
+  }
+}
+
+auto main() -> int {
+#ifdef DEBUG
+  fmt::print("Debugging\n");
+#endif
+
+  std::thread([&] { barber_routine(); }).detach();
+
+  constexpr const auto MAX_ITERATIONS = 10'000u;
+
+  std::thread([&] {
+    for (int32_t i = 0; i < MAX_ITERATIONS; i++)
+      std::thread([&] { customer_routine(); }).detach();
+  }).detach();
+
+  while (served + left < MAX_ITERATIONS)
+    ;
+
+  assert(left + served == MAX_ITERATIONS);
+
+  fmt::print("Press enter to exit\n");
+  std::cin.get();
+  fmt::print("Result: {}\n", served + left);
+
+  return 0;
 }

@@ -5,9 +5,8 @@ local libs = { "fmt" }
 
 add_requires(table.unpack(libs))
 
-if is_mode("debug") then
-  add_defines("DEBUG")
-end
+add_defines("DEBUG")
+add_cflags("-O0")
 
 target("working_shop")
   set_kind("binary")

@@ -1,11 +1,16 @@
 [
 {
   "directory": "/home/danielboll/dev/Unioeste/2022/SO/trabalho/sleepy_barber",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++20", "-DNDEBUG", "-o", "build/.objs/working_shop/linux/x86_64/release/src/working.cpp.o", "src/working.cpp"],
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-std=c++20", "-DDEBUG", "-o", "build/.objs/gpt_non_working_shop/linux/x86_64/debug/src/gpt-non-working.cpp.o", "src/gpt-non-working.cpp"],
+  "file": "src/gpt-non-working.cpp"
+},
+{
+  "directory": "/home/danielboll/dev/Unioeste/2022/SO/trabalho/sleepy_barber",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-std=c++20", "-DDEBUG", "-o", "build/.objs/working_shop/linux/x86_64/debug/src/working.cpp.o", "src/working.cpp"],
   "file": "src/working.cpp"
 },
 {
   "directory": "/home/danielboll/dev/Unioeste/2022/SO/trabalho/sleepy_barber",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++20", "-DNDEBUG", "-o", "build/.objs/non_working_shop/linux/x86_64/release/src/non-working.cpp.o", "src/non-working.cpp"],
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-std=c++20", "-DDEBUG", "-o", "build/.objs/non_working_shop/linux/x86_64/debug/src/non-working.cpp.o", "src/non-working.cpp"],
   "file": "src/non-working.cpp"
 }]
